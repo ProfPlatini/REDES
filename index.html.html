@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prof. Platini - Quiz</title>
+<style>
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #fff;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+header {
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-size: 24px;
+  font-weight: bold;
+  color: #E50914;
+}
+#game-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+}
+button {
+  background-color: #E50914;
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 20px;
+  margin: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  transition: background-color 0.3s;
+}
+button:hover {
+  background-color: #b00710;
+}
+.hidden {
+  display: none;
+}
+#lives {
+  margin: 10px 0;
+  font-size: 20px;
+  color: #E50914;
+}
+.flash {
+  animation: flashRed 0.3s;
+}
+@keyframes flashRed {
+  0% { background-color: #fff; }
+  50% { background-color: #ffcccc; }
+  100% { background-color: #fff; }
+}
+.correct {
+  background-color: #4CAF50 !important;
+}
+.wrong {
+  background-color: #E50914 !important;
+}
+input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  width: 80%;
+  margin: 8px 0;
+  font-size: 16px;
+}
+</style>
+</head>
+<body>
+<header>Prof. Platini</header>
+<div id="game-container">
+  <div id="start-screen">
+    <h2>Bem-vindo ao Quiz!</h2>
+    <p>Digite seu nome e turma para começar:</p>
+    <input type="text" id="nome" placeholder="Seu nome"><br>
+    <input type="text" id="turma" placeholder="Sua turma"><br>
+    <button onclick="startGame()">Iniciar Quiz</button>
+  </div>
+
+  <div id="quiz-screen" class="hidden">
+    <div id="player-info"></div>
+    <div id="lives">❤️❤️❤️</div>
+    <h3 id="question"></h3>
+    <div id="answers"></div>
+  </div>
+
+  <div id="game-over" class="hidden">
+    <h2>Fim de Jogo</h2>
+    <p>Você perdeu todas as vidas.</p>
+    <button onclick="restartGame()">Reiniciar</button>
+  </div>
+
+  <div id="victory" class="hidden">
+    <h2>Parabéns!</h2>
+    <p id="score"></p>
+    <button onclick="restartGame()">Jogar Novamente</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {q:"Qual é a principal função de uma rede industrial?",a:["Comunicação entre dispositivos de automação","Acesso à internet","Controle de usuários","Armazenamento de dados"],c:0},
+  {q:"O que caracteriza uma rede industrial?",a:["Troca de dados em tempo real","Uso de redes sociais","Acesso remoto apenas","Sem controle de tempo"],c:0},
+  {q:"O que diferencia uma rede industrial de uma rede de escritório?",a:["Maior resistência e confiabilidade","Uso de Wi-Fi","Menor custo","Mesmo propósito"],c:0},
+  {q:"O que é um dispositivo de campo?",a:["Equipamento que mede e atua no processo","Servidor de dados","Computador de escritório","Roteador"],c:0},
+  {q:"O que é interoperabilidade?",a:["Comunicação entre diferentes sistemas","Uso de um único fabricante","Isolamento de sistemas","Redução de dados"],c:0},
+  {q:"Qual é o papel do CLP?",a:["Controlar e coordenar dispositivos","Armazenar relatórios","Gerar gráficos","Acessar internet"],c:0},
+  {q:"Por que a padronização é importante?",a:["Facilita integração e manutenção","Dificulta comunicação","Aumenta dependência","Reduz compatibilidade"],c:0},
+  {q:"O que garante a confiabilidade da comunicação?",a:["Cabos adequados e blindados","Cabos simples","Sem planejamento","Redução de blindagem"],c:0},
+  {q:"O que é uma rede determinística?",a:["Tempo de resposta previsível","Comunicação aleatória","Sem controle de tempo","Apenas dois dispositivos"],c:0},
+  {q:"Qual é o benefício da automação integrada?",a:["Aumento da produtividade","Mais falhas humanas","Menor eficiência","Menos comunicação"],c:0},
+  {q:"O que é supervisão?",a:["Monitoramento em tempo real","Controle de acesso","Armazenamento em nuvem","Programação de CLPs"],c:0},
+  {q:"Por que a segurança é crítica?",a:["Protege contra falhas e acessos indevidos","Reduz velocidade","Limita dispositivos","Impede comunicação"],c:0},
+  {q:"O que é interoperabilidade entre sistemas?",a:["Trabalho conjunto entre diferentes protocolos","Isolamento de sistemas","Comunicação limitada","Redução de dados"],c:0},
+  {q:"O que é um meio físico adequado?",a:["Garante integridade e velocidade","Aumenta ruído","Reduz confiabilidade","Diminui desempenho"],c:0},
+  {q:"Qual é o principal objetivo das redes industriais?",a:["Integrar e otimizar processos","Substituir energia elétrica","Reduzir custos de TI","Aumentar ruído"],c:0}
+];
+
+let current = 0;
+let lives = 3;
+let score = 0;
+let playerName = "";
+let playerClass = "";
+
+function startGame(){
+  const nome = document.getElementById('nome').value.trim();
+  const turma = document.getElementById('turma').value.trim();
+  if(nome === "" || turma === ""){
+    alert("Por favor, preencha seu nome e turma antes de começar!");
+    return;
+  }
+  playerName = nome;
+  playerClass = turma;
+  document.getElementById('player-info').textContent = `${playerName} - Turma: ${playerClass}`;
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.remove('hidden');
+  showQuestion();
+}
+
+function showQuestion(){
+  if(current >= questions.length){
+    victory();
+    return;
+  }
+  const q = questions[current];
+  document.getElementById('question').textContent = q.q;
+  const answersDiv = document.getElementById('answers');
+  answersDiv.innerHTML = '';
+  q.a.forEach((ans,i)=>{
+    const btn = document.createElement('button');
+    btn.textContent = ans;
+    btn.onclick = ()=>checkAnswer(i,btn);
+    answersDiv.appendChild(btn);
+  });
+}
+
+function checkAnswer(i,btn){
+  const q = questions[current];
+  const buttons = document.querySelectorAll('#answers button');
+  buttons.forEach(b=>b.disabled=true);
+  if(i===q.c){
+    btn.classList.add('correct');
+    score++;
+    setTimeout(()=>{current++;showQuestion();},800);
+  } else {
+    btn.classList.add('wrong');
+    document.body.classList.add('flash');
+    setTimeout(()=>document.body.classList.remove('flash'),300);
+    buttons[q.c].classList.add('correct');
+    lives--;
+    updateLives();
+    if(lives<=0){
+      setTimeout(gameOver,1000);
+    } else {
+      setTimeout(()=>{current++;showQuestion();},1500);
+    }
+  }
+}
+
+function updateLives(){
+  const hearts = "❤️".repeat(lives);
+  document.getElementById('lives').textContent = hearts;
+}
+
+function gameOver(){
+  document.getElementById('quiz-screen').classList.add('hidden');
+  document.getElementById('game-over').classList.remove('hidden');
+}
+
+function victory(){
+  document.getElementById('quiz-screen').classList.add('hidden');
+  document.getElementById('victory').classList.remove('hidden');
+  document.getElementById('score').textContent = `${playerName} (${playerClass}), você acertou ${score} de ${questions.length} perguntas!`;
+}
+
+function restartGame(){
+  current = 0;
+  lives = 3;
+  score = 0;
+  updateLives();
+  document.getElementById('game-over').classList.add('hidden');
+  document.getElementById('victory').classList.add('hidden');
+  document.getElementById('start-screen').classList.remove('hidden');
+  document.getElementById('nome').value = "";
+  document.getElementById('turma').value = "";
+}
+</script>
+</body>
+</html>
